@@ -1,0 +1,3 @@
+data/kb/*.docx
+data/sql/*.sql
+.env
