@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+
 from src.api.v1.routes.ingestion import router as ingestion_router
 
 app = FastAPI(title="Credit Card Spend Summarizer")

@@ -2,7 +2,6 @@ from sqlalchemy import text
 
 from src.core.db import get_db_conn
 
-
 EXPECTED_TABLES = {
     "customers": 6,
     "credit_cards": 6,

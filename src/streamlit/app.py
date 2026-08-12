@@ -1,5 +1,6 @@
-import streamlit as st
 import requests
+
+import streamlit as st
 
 st.title("Credit Card Spend Summarizer")
 
