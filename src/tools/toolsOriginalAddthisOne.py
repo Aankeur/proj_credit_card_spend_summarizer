@@ -1,7 +1,7 @@
 import re
 import psycopg
 import os
-from app.core.db import get_vector_store
+from app.core.db import get_vector_store, get_rdbms_connection
 from psycopg.rows import dict_row
 from langchain_core.tools import tool
 
@@ -129,6 +129,65 @@ def search_hybrid(
     ranked = sorted(rrf_scores.items(), key=lambda x: x[1], reverse=True)
 
     return [chunk_map[key] for key, _ in ranked[:k]]
+
+
+@tool
+def search_rdbms(
+    operation: str, card_id: str, billing_month: str, start_date: str, end_date: str
+):
+    """
+    Read-only retrieval tool for credit card data stored in PostgreSQL.
+
+    Supported operations:
+    - monthly_spend
+    - category_breakdown
+    - top_merchants
+    - international_spend
+    - reward_points
+    - mom_comparison
+    - fee_waiver
+    """
+
+    queries = {
+        "monthly_spend": """
+            SELECT
+                SUM(amount) AS total_spend,
+                COUNT(*) AS total_transactions
+            FROM card_transactions
+            WHERE card_id = %(card_id)s
+              AND txn_date >= %(start_date)s
+              AND txn_date < %(end_date)s;
+        """,
+        "top_merchants": """
+            SELECT
+                merchant_name,
+                SUM(amount) AS amount,
+                COUNT(*) AS transaction_count
+            FROM card_transactions
+            WHERE card_id = %(card_id)s
+              AND txn_date >= %(start_date)s
+              AND txn_date < %(end_date)s
+            GROUP BY merchant_name
+            ORDER BY amount DESC
+            LIMIT 5;
+        """,
+    }
+
+    if operation not in queries:
+        return {"error": f"Unsupported operation: {operation}"}
+
+    params = {
+        "card_id": card_id,
+        "start_date": start_date,
+        "end_date": end_date,
+    }
+
+    with get_rdbms_connection() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(queries[operation], params)
+            result = cursor.fetchall()
+
+    return result
 
 
 if __name__ == "__main__":

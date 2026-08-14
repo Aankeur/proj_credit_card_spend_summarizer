@@ -1,6 +1,8 @@
 from dotenv import load_dotenv
 from langchain_postgres import PGVector
 from langchain_openai import OpenAIEmbeddings
+import psycopg
+from psycopg.rows import dict_row
 
 import os
 
@@ -25,3 +27,7 @@ def get_vector_store(collection_name: str, pre_delete_collection: bool = False):
     except Exception as e:
         print(f"error while connectinmg to pg vector db : {e}")
         raise RuntimeError("failed to connect to db") from e
+
+
+def get_rdbms_connection():
+    return psycopg.connect(PG_CONNECTION, row_factory=dict_row)
