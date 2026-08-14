@@ -12,7 +12,8 @@ from langchain_openai import ChatOpenAI
 
 from src.core.vector_db import insert_documents
 from src.ingestion.chunking import create_chunks
-from src.ingestion.embedding import generate_embeddings
+
+# from src.ingestion.embedding import generate_embeddings
 
 load_dotenv()
 
@@ -366,16 +367,14 @@ def ingest_knowledge_base():
 
     chunks = create_chunks(parsed_elements)
 
-    embedded_documents = generate_embeddings(chunks)
-
-    inserted_count = insert_documents(embedded_documents)
+    inserted_count = insert_documents(chunks)
 
     return {
         "status": "success",
         "source": str(KB_FILE),
         "parsed_elements": len(parsed_elements),
         "chunks": len(chunks),
-        "embedded_documents": len(embedded_documents),
+        "embedded_documents": len(chunks),
         "inserted_documents": inserted_count,
     }
 

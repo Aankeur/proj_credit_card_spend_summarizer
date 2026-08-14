@@ -1,163 +1,96 @@
-import hashlib
-import json
+import os
 
-from sqlalchemy import text
+from dotenv import load_dotenv
+from langchain_core.documents import Document
+from langchain_openai import OpenAIEmbeddings
+from langchain_postgres import PGVector
 
-from src.core.db import get_db_conn
-
-
-def generate_document_hash(
-    content: str,
-    metadata: dict,
-) -> str:
-
-    content_type = metadata.get("content_type")
-
-    if content_type == "image":
-        image_base64 = metadata.get("image_base64")
-
-        if image_base64:
-            return hashlib.sha256(image_base64.encode("utf-8")).hexdigest()
-
-    return hashlib.sha256(content.encode("utf-8")).hexdigest()
+load_dotenv()
 
 
-def create_vector_table(embedding_dimension: int):
+COLLECTION_NAME = os.getenv(
+    "PGVECTOR_COLLECTION_NAME",
+    "credit_card_knowledgebase",
+)
+
+PG_CONNECTION_STRING = os.getenv(
+    "PG_DATABASE_URL",
+)
+
+
+def create_embedding_model() -> OpenAIEmbeddings:
     """
-    Create the pgvector extension and the knowledge_documents table.
+    Create the embedding model used by the PGVector store.
     """
 
-    db = get_db_conn()
+    return OpenAIEmbeddings(
+        model=os.getenv(
+            "OPENAI_EMBEDDING_MODEL",
+            "text-embedding-3-small",
+        ),
+        api_key=os.getenv("OPENAI_API_KEY"),
+    )
 
-    try:
-        # Enable pgvector
-        db.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
 
-        # Create vector table
-        db.execute(
-            text(f"""
-                CREATE TABLE IF NOT EXISTS knowledge_documents (
-                    id SERIAL PRIMARY KEY,
-                    content TEXT NOT NULL,
-                    content_hash VARCHAR(64) UNIQUE NOT NULL,
-                    embedding VECTOR({embedding_dimension}),
-                    metadata JSONB
-                )
-                """)
+def get_vector_store() -> PGVector:
+    """
+    Return the LangChain PGVector store.
+
+    The PGVector integration creates and manages the required
+    LangChain vector-store tables in PostgreSQL.
+    """
+
+    if not PG_CONNECTION_STRING:
+        raise ValueError(
+            "PG_DATABASE_URL is not configured."
         )
 
-        db.commit()
-
-    finally:
-        db.close()
+    return PGVector(
+        embeddings=create_embedding_model(),
+        collection_name=COLLECTION_NAME,
+        connection=PG_CONNECTION_STRING,
+        use_jsonb=True,
+    )
 
 
 def insert_documents(
-    embedded_documents: list[dict],
+    documents: list[Document],
 ) -> int:
     """
-    Insert embedded KB chunks into PostgreSQL/pgvector.
+    Insert LangChain Documents into PGVector.
 
-    Duplicate chunks are ignored using content_hash.
-
-    Each document should contain:
-        content
-        embedding
-        metadata
+    PGVector manages the vector-store tables and embeddings.
     """
 
-    if not embedded_documents:
+    if not documents:
         return 0
 
-    # Determine embedding dimension
-    embedding_dimension = len(embedded_documents[0]["embedding"])
+    vector_store = get_vector_store()
 
-    # Make sure table exists
-    create_vector_table(embedding_dimension)
+    vector_store.add_documents(documents)
 
-    db = get_db_conn()
-
-    try:
-        inserted_count = 0
-
-        for document in embedded_documents:
-            content = document["content"]
-
-            embedding = document["embedding"]
-
-            metadata = document.get(
-                "metadata",
-                {},
-            )
-
-            content_hash = generate_document_hash(content, metadata,)
-
-            embedding_string = "[" + ",".join(str(value) for value in embedding) + "]"
-
-            result = db.execute(
-                text("""
-                    INSERT INTO knowledge_documents
-                    (
-                        content,
-                        content_hash,
-                        embedding,
-                        metadata
-                    )
-                    VALUES
-                    (
-                        :content,
-                        :content_hash,
-                        CAST(:embedding AS vector),
-                        CAST(:metadata AS jsonb)
-                    )
-                    ON CONFLICT (content_hash)
-                    DO NOTHING
-                    RETURNING id
-                    """),
-                {
-                    "content": content,
-                    "content_hash": content_hash,
-                    "embedding": embedding_string,
-                    "metadata": json.dumps(metadata),
-                },
-            )
-
-            inserted_id = result.scalar_one_or_none()
-
-            if inserted_id is not None:
-                inserted_count += 1
-
-
-        db.commit()
-
-        return inserted_count
-
-    except Exception:
-        db.rollback()
-
-        raise
-
-    finally:
-        db.close()
+    return len(documents)
 
 
 def get_document_count() -> int:
     """
-    Return the number of documents currently
-    stored in the vector table.
+    Return the number of documents stored in the
+    current PGVector collection.
     """
 
-    db = get_db_conn()
+    vector_store = get_vector_store()
 
-    try:
-        result = db.execute(
-            text("""
-                SELECT COUNT(*)
-                FROM knowledge_documents
-                """)
-        )
+    result = vector_store._make_sync_session().execute(
+        """
+        SELECT COUNT(*)
+        FROM langchain_pg_embedding e
+        JOIN langchain_pg_collection c
+          ON e.collection_id = c.uuid
+        WHERE c.name = :collection_name
+        """,
+        {
+            "collection_name": COLLECTION_NAME,
+        },
+    )
 
-        return result.scalar_one()
-
-    finally:
-        db.close()
+    return result.scalar_one()
