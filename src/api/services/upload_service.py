@@ -13,8 +13,7 @@ async def upload_document(file: UploadFile):
         buffer.write(await file.read())
 
     # ingest_pdf(file_path)
-    # return {
-    #     "message": "File uploaded successfully",
-    #     "filename": file.filename,
-
-    # }
+    return {
+        "message": "File uploaded successfully",
+        "filename": file.filename,
+    }
