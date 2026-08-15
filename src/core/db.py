@@ -1,32 +1,33 @@
-import os
-
 from dotenv import load_dotenv
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from langchain_postgres import PGVector
+from langchain_openai import OpenAIEmbeddings
+import psycopg
+from psycopg.rows import dict_row
+
+import os
 
 load_dotenv()
 
-
-DATABASE_URL = os.getenv("PG_DATABASE_URL")
-
-
-engine = create_engine(
-    DATABASE_URL,
-    pool_pre_ping=True,
-    pool_size=5,
-    max_overflow=10
-)
+PG_CONNECTION = os.getenv("PG_CONNECTION_STRING")
 
 
-SessionLocal = sessionmaker(
-    bind=engine,
-    autocommit=False,
-    autoflush=False
-)
+def get_embeddings():
+    return OpenAIEmbeddings(model=os.getenv("EMBEDDING_MODEL"), dimensions=1536)
 
 
-def get_db_conn():
-    return SessionLocal()
+def get_vector_store(collection_name: str, pre_delete_collection: bool = False):
+    try:
+        return PGVector(
+            collection_name=collection_name,
+            connection=PG_CONNECTION,
+            embeddings=get_embeddings(),
+            use_jsonb=True,  # for better querying during retrieval
+            pre_delete_collection=pre_delete_collection,
+        )
+    except Exception as e:
+        print(f"error while connectinmg to pg vector db : {e}")
+        raise RuntimeError("failed to connect to db") from e
 
-## run this: 
-# uv add fastapi uvicorn sqlalchemy psycopg2-binary python-dotenv streamlit requests langchain_core langchain_openai docling
+
+def get_rdbms_connection():
+    return psycopg.connect(PG_CONNECTION, row_factory=dict_row)
