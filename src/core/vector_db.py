@@ -32,7 +32,7 @@ def create_embedding_model() -> OpenAIEmbeddings:
     )
 
 
-def get_vector_store() -> PGVector:
+def get_vector_store(collection_name: str = COLLECTION_NAME,) -> PGVector:
     """
     Return the LangChain PGVector store.
 
