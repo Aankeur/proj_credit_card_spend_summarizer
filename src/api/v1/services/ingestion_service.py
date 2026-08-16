@@ -1,9 +1,7 @@
-<<<<<<< HEAD
-=======
 # we already ingested rdbms data so function: ingest transaction data is not required....but we have to implement it
 # from src.ingestion.sql_ingestion import ingest_transaction_data
 
->>>>>>> feature/Ingestion_fix
+
 from src.ingestion.kb_ingestion import ingest_knowledge_base
 from src.ingestion.sql_ingestion import check_transaction_database
 
