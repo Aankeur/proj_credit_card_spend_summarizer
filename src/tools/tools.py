@@ -137,8 +137,8 @@ def search_rdbms(
             COUNT(*) AS total_transactions
         FROM card_transactions
        WHERE (%(card_id)s = '' OR card_id = %(card_id)s)
-          AND txn_date >= %(start_date)s
-          AND txn_date < %(end_date)s;
+           AND (%(start_date)s = '' OR txn_date >= %(start_date)s::date)
+      AND (%(end_date)s = '' OR txn_date < %(end_date)s::date)
     """,
         "category_breakdown": """
         SELECT
@@ -146,8 +146,8 @@ def search_rdbms(
             SUM(amount) AS total_spend
         FROM card_transactions
         WHERE (%(card_id)s = '' OR card_id = %(card_id)s)
-          AND txn_date >= %(start_date)s
-          AND txn_date < %(end_date)s
+          AND (%(start_date)s = '' OR txn_date >= %(start_date)s::date)
+      AND (%(end_date)s = '' OR txn_date < %(end_date)s::date)
         GROUP BY category_name
         ORDER BY total_spend DESC;
     """,
@@ -158,29 +158,29 @@ def search_rdbms(
             COUNT(*) AS transaction_count
         FROM card_transactions
         WHERE (%(card_id)s = '' OR card_id = %(card_id)s)
-          AND txn_date >= %(start_date)s
-          AND txn_date < %(end_date)s
+          AND (%(start_date)s = '' OR txn_date >= %(start_date)s::date)
+      AND (%(end_date)s = '' OR txn_date < %(end_date)s::date)
         GROUP BY merchant_name
         ORDER BY amount DESC
         LIMIT 5;
     """,
         "international_spend": """
-        SELECT
-            SUM(amount) AS international_spend,
-            COUNT(*) AS international_transactions
-        FROM card_transactions
-        WHERE card_id = %(card_id)s
-          AND is_international = true
-          AND txn_date >= %(start_date)s
-          AND txn_date < %(end_date)s;
-    """,
+    SELECT
+        SUM(amount) AS international_spend,
+        COUNT(*) AS international_transactions
+    FROM card_transactions
+    WHERE (%(card_id)s = '' OR card_id = %(card_id)s)
+      AND is_international = true
+      AND (%(start_date)s = '' OR txn_date >= %(start_date)s::date)
+      AND (%(end_date)s = '' OR txn_date < %(end_date)s::date);
+""",
         "reward_points": """
     SELECT
         COALESCE(SUM(reward_pts_earned), 0) AS total_reward_points
     FROM card_transactions
     WHERE txn_date >= %(start_date)s
       AND txn_date < %(end_date)s
-      AND (%(card_id)s = '' OR card_id = %(card_id)s);
+      AND (%(card_id)s = '' OR card_id = %(card_id)s)
 """,
         "mom_comparison": """
         SELECT
@@ -188,8 +188,8 @@ def search_rdbms(
             SUM(amount) AS total_spend
         FROM card_transactions
         WHERE (%(card_id)s = '' OR card_id = %(card_id)s)
-          AND txn_date >= %(start_date)s
-          AND txn_date < %(end_date)s
+          AND (%(start_date)s = '' OR txn_date >= %(start_date)s::date)
+      AND (%(end_date)s = '' OR txn_date < %(end_date)s::date)
         GROUP BY DATE_TRUNC('month', txn_date)
         ORDER BY month;
     """,
@@ -198,8 +198,8 @@ def search_rdbms(
             SUM(amount) AS yearly_spend
         FROM card_transactions
        WHERE (%(card_id)s = '' OR card_id = %(card_id)s)
-          AND txn_date >= %(start_date)s
-          AND txn_date < %(end_date)s;
+           AND (%(start_date)s = '' OR txn_date >= %(start_date)s::date)
+      AND (%(end_date)s = '' OR txn_date < %(end_date)s::date)
     """,
         "customer_details": """
     SELECT
