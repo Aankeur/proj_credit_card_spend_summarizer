@@ -10,7 +10,7 @@ def process_query(request: dict):
             "messages": [
                 {
                     "role": "user",
-                    "content": question,
+                    "content": str(request),
                 }
             ]
         }
@@ -18,19 +18,21 @@ def process_query(request: dict):
 
     structured_response = response["structured_response"]
 
+    print("========== ALL MESSAGES ==========")
+
     for message in response["messages"]:
         for tool_call in getattr(message, "tool_calls", []):
             print("Tool:", tool_call["name"])
 
-            print("========== RESPONSE ==========")
-            print(response["structured_response"].response)
+    print("========== RESPONSE ==========")
+    print(structured_response.response)
 
-            result = {
-                "question": question,
-                "response": structured_response.response,
-            }
+    result = {
+        "question": question,
+        "response": structured_response.response,
+    }
 
-            if structured_response.citations:
-                result["citations"] = structured_response.citations
+    if structured_response.citations:
+        result["citations"] = structured_response.citations
 
-            return result
+    return result

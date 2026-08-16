@@ -130,7 +130,10 @@ credit_card_spent_agent = create_agent(
     - sentences that do not directly answer the user's question
 
   14. For search_rdbms:
-- Always provide the card_id.
+- Provide card_id when it is available from the user request or context.
+- If the question does not contain card_id, pass an empty string.
+- Do not ask the user for card_id unless the query cannot be answered without it.
+- For reward_points queries, monthly aggregation can be performed without card_id if no card is provided.
 - If the user specifies a billing month such as "April 2026", provide billing_month as "2026-04".
 - If the user specifies an explicit date range, provide start_date and end_date in YYYY-MM-DD format.
 - Do not pass empty strings for start_date or end_date when the user has provided an explicit date range.
