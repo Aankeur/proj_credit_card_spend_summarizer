@@ -1,7 +1,6 @@
 from pathlib import Path
 from fastapi import UploadFile
-
-# from src.ingestion.ingestion import ingest_pdf
+from src.ingestion.ingestion import ingest_knowledge_base
 
 
 async def upload_document(file: UploadFile):
@@ -12,8 +11,9 @@ async def upload_document(file: UploadFile):
     with open(file_path, "wb") as buffer:
         buffer.write(await file.read())
 
-    # ingest_pdf(file_path)
+    ingestion_result = ingest_knowledge_base(file_path)
     return {
         "message": "File uploaded successfully",
         "filename": file.filename,
+        "ingestion": ingestion_result,
     }

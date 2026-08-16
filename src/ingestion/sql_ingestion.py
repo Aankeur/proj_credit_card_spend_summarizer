@@ -1,6 +1,10 @@
 from sqlalchemy import text
 
+<<<<<<< HEAD
 from src.core.db import get_db_conn
+=======
+from src.core.vector_db import get_db_conn
+>>>>>>> feature/Ingestion_fix
 
 REQUIRED_TABLES = [
     "customers",
@@ -10,6 +14,10 @@ REQUIRED_TABLES = [
     "billing_statements",
 ]
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> feature/Ingestion_fix
 def check_transaction_database():
 
     db = get_db_conn()
@@ -18,16 +26,24 @@ def check_transaction_database():
         existing_tables = []
 
         for table in REQUIRED_TABLES:
+<<<<<<< HEAD
             query = text(
                 """
+=======
+            query = text("""
+>>>>>>> feature/Ingestion_fix
                 SELECT EXISTS (
                     SELECT 1
                     FROM information_schema.tables
                     WHERE table_schema = 'public'
                     AND table_name = :table_name
                 )
+<<<<<<< HEAD
                 """
             )
+=======
+                """)
+>>>>>>> feature/Ingestion_fix
 
             exists = db.execute(query, {"table_name": table}).scalar()
 

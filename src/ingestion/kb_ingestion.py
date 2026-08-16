@@ -18,7 +18,11 @@ from src.ingestion.chunking import create_chunks
 load_dotenv()
 
 
+<<<<<<< HEAD
 KB_FILE = Path("data/kb/KB_Credit_Card_Spend_Summarizer.docx")
+=======
+# KB_FILE = Path("data/kb/KB_Credit_Card_Spend_Summarizer.docx")
+>>>>>>> feature/Ingestion_fix
 
 
 def _describe_image_with_openai(img_b64: str) -> str:
@@ -114,7 +118,11 @@ def parse_document(file_path: str) -> list[dict]:
         image
     """
 
+<<<<<<< HEAD
     converter = DocumentConverter(allowed_formats=[InputFormat.DOCX])
+=======
+    converter = DocumentConverter(allowed_formats=[InputFormat.DOCX, InputFormat.PDF])
+>>>>>>> feature/Ingestion_fix
 
     result = converter.convert(file_path)
 
@@ -361,9 +369,15 @@ def parse_document(file_path: str) -> list[dict]:
     return parsed_chunks
 
 
+<<<<<<< HEAD
 def ingest_knowledge_base():
 
     parsed_elements = parse_document(str(KB_FILE))
+=======
+def ingest_knowledge_base(file_path):
+
+    parsed_elements = parse_document(str(file_path))
+>>>>>>> feature/Ingestion_fix
 
     chunks = create_chunks(parsed_elements)
 
@@ -371,7 +385,11 @@ def ingest_knowledge_base():
 
     return {
         "status": "success",
+<<<<<<< HEAD
         "source": str(KB_FILE),
+=======
+        "source": str(file_path),
+>>>>>>> feature/Ingestion_fix
         "parsed_elements": len(parsed_elements),
         "chunks": len(chunks),
         "embedded_documents": len(chunks),
@@ -379,6 +397,7 @@ def ingest_knowledge_base():
     }
 
 
+<<<<<<< HEAD
 if __name__ == "__main__":
     result = ingest_knowledge_base()
 
@@ -393,5 +412,23 @@ if __name__ == "__main__":
     print(f"Embeddings generated: {result['embedded_documents']}")
 
     print(f"Documents inserted into vector DB: {result['inserted_documents']}")
+=======
+# if __name__ == "__main__":
+#     files = list(Path("data").glob("*.pdf"))
+
+#     if not files:
+#         raise FileNotFoundError("No PDF found in data directory")
+
+#     file_path = files[0]
+
+#     result = ingest_knowledge_base(file_path)
+
+#     print("\n========== INGESTION RESULT ==========")
+#     print(f"Status: {result['status']}")
+#     print(f"Parsed elements: {result['parsed_elements']}")
+#     print(f"Chunks created: {result['chunks']}")
+#     print(f"Embeddings generated: {result['embedded_documents']}")
+#     print(f"Documents inserted into vector DB: {result['inserted_documents']}")
+>>>>>>> feature/Ingestion_fix
 
 ## run as uv run python -m src.ingestion.kb_ingestion

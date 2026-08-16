@@ -10,19 +10,29 @@ def process_query(request: dict):
             "messages": [
                 {
                     "role": "user",
-                    "content": question,
+                    "content": str(request),
                 }
             ]
         }
     )
 
-    print(
-        "****************** Response returned by agent *************************",
-        response,
-    )
+    structured_response = response["structured_response"]
 
-    return {
+    print("========== ALL MESSAGES ==========")
+
+    for message in response["messages"]:
+        for tool_call in getattr(message, "tool_calls", []):
+            print("Tool:", tool_call["name"])
+
+    print("========== RESPONSE ==========")
+    print(structured_response.response)
+
+    result = {
         "question": question,
-        "message": "Query received successfully.",
-        "response": response,
+        "response": structured_response.response,
     }
+
+    if structured_response.citations:
+        result["citations"] = structured_response.citations
+
+    return result
