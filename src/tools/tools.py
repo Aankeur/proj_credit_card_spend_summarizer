@@ -253,6 +253,11 @@ def search_rdbms(
             cursor.execute(queries[operation], params)
             result = cursor.fetchall()
 
+            if not result:
+                return {"status": "no_data", "data": []}
+
+        return {"status": "success", "data": result}
+
     print("RESULT:")
     print(result)
     return result
