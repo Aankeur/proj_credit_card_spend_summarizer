@@ -1,38 +1,93 @@
-from src.agents.rag_agent import credit_card_spent_agent
+from src.agents.graph import credit_card_graph
 
 
 def process_query(request: dict):
+    """
+    Normal non-streaming execution.
+
+    Used by:
+    POST /api/v1/spend-summary/
+    """
 
     question = request["question"]
 
-    response = credit_card_spent_agent.invoke(
+    response = credit_card_graph.invoke(
         {
-            "messages": [
-                {
-                    "role": "user",
-                    "content": str(request),
-                }
-            ]
+            "question": question,
+            "route": "",
+            "retrieved_documents": [],
+            "sql_result": "",
+            "answer": "",
+            "citations": [],
+            "retry_count": 0,
         }
     )
 
-    structured_response = response["structured_response"]
+    print("========== GRAPH RESPONSE ==========")
+    print(response)
 
-    print("========== ALL MESSAGES ==========")
-
-    for message in response["messages"]:
-        for tool_call in getattr(message, "tool_calls", []):
-            print("Tool:", tool_call["name"])
-
-    print("========== RESPONSE ==========")
-    print(structured_response.response)
+    print("========== FINAL ANSWER ==========")
+    print(response.get("answer"))
 
     result = {
         "question": question,
-        "response": structured_response.response,
+        "response": response.get(
+            "answer",
+            "",
+        ),
     }
 
-    if structured_response.citations:
-        result["citations"] = structured_response.citations
+    if response.get("citations"):
+        result["citations"] = response["citations"]
 
     return result
+
+
+
+async def process_query_stream(request: dict):
+    """
+    Streaming execution.
+
+    Used by:
+    POST /api/v1/spend-summary/stream
+    """
+
+    print("=== STREAM START ===")
+
+    question = request["question"]
+
+    async for event in credit_card_graph.astream_events(
+        {
+            "question": question,
+            "route": "",
+            "retrieved_documents": [],
+            "sql_result": "",
+            "answer": "",
+            "citations": [],
+            "retry_count": 0,
+        },
+        version="v2",
+    ):
+
+        event_name = event["event"]
+
+        print("EVENT:", event_name)
+
+        if event_name == "on_chat_model_stream":
+
+            chunk = event["data"]["chunk"]
+
+            content = getattr(
+                chunk,
+                "content",
+                None,
+            )
+
+            if content:
+
+                print(
+                    "STREAM CHUNK:",
+                    content,
+                )
+
+                yield f"data: {content}\n\n"
