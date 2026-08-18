@@ -1,7 +1,16 @@
 from src.agents.rag_agent import llm
 
 
-def generate_sql(question: str):
+def generate_sql(
+    question: str,
+    chat_history: list = None,
+):
+
+    history_text = ""
+
+    if chat_history:
+        for message in chat_history[-5:]:
+            history_text += f"{message['role']}: " f"{message['content']}\n"
 
     prompt = f"""
 You are a PostgreSQL SQL expert.
@@ -105,6 +114,37 @@ Rules:
 - Use txn_date for transaction date filtering.
 - Use billing_month for statement based queries.
 
+String matching rules:
+- PostgreSQL string comparisons are case-sensitive.
+- For varchar/text columns, always use ILIKE or LOWER() for comparisons.
+- Do not assume the case of stored values.
+- For fields like status, category_name, merchant_name, card_variant, and customer names, use case-insensitive matching.
+- Do not use SQL parameters like $1, $2, etc.
+- Use the provided customer context value directly in the query.
+
+Date and value normalization rules:
+- Understand user-provided dates/months in natural language and convert them to the format stored in the database.
+- Use the schema information to determine the expected format of date-related fields.
+- Examples:
+  - "March 2026" can map to "2026-03" if the database stores month values in YYYY-MM format.
+  - "1 March 2026" can map to "2026-03-01" or "01-03-2026" if the database stores full dates.
+- Do not compare formatted user input directly if conversion is required.
+
+When generating SQL:
+- Only include filters for values that are required to answer the database portion of the question.
+- Do not convert every named entity in the user question into a SQL WHERE condition.
+- Distinguish between:
+  1. Contextual product information used for explanation or knowledge lookup.
+  2. Identifiers required to retrieve customer-specific records.
+- If the question contains multiple entities, use only entities that map to the requested database information.
+
+
+Never generate static text values.
+Never create columns with hardcoded explanations.
+Only select columns that exist in database schema.
+
+Conversation history:
+{history_text}
 
 User question:
 {question}

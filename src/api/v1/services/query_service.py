@@ -21,6 +21,7 @@ def process_query(request: dict):
                 "answer": "",
                 "citations": [],
                 "retry_count": 0,
+                "chat_history": request.get("chat_history", []),
             }
         )
 
@@ -43,11 +44,14 @@ def process_query(request: dict):
 
         return result
 
-    except Exception:
-        return {
-            "question": question,
-            "response": "I am unable to process your request at the moment. Please try again later.",
-        }
+    except Exception as e:
+        print("========== QUERY SERVICE ERROR ==========")
+        print(e)
+
+    return {
+        "question": question,
+        "response": "I am unable to process your request at the moment. Please try again later.",
+    }
 
 
 async def process_query_stream(request: dict):
