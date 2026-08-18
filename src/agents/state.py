@@ -9,6 +9,8 @@ class CreditCardAgentState(TypedDict):
     and returns updates for the next node.
     """
 
+    chat_history: list
+
     # Original user query
     question: str
 
@@ -20,7 +22,7 @@ class CreditCardAgentState(TypedDict):
     retrieved_documents: List[Any]
 
     # Customer-specific database result
-    sql_result: str
+    sql_result: list
 
     # Final generated answer
     answer: str

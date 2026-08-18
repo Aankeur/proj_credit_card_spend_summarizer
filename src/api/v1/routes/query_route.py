@@ -40,7 +40,6 @@ def query(request: dict):
     return response
 
 
-
 @router.post("/stream")
 async def query_stream(request: dict):
     """
