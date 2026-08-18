@@ -1,10 +1,11 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 
 from src.api.v1.services.query_service import (
     process_query,
     process_query_stream,
 )
+from src.core.guardrails import GuardrailViolation, guard_input
 
 router = APIRouter(
     prefix="/api/v1/spend-summary",
@@ -21,7 +22,22 @@ def query(request: dict):
     POST /api/v1/spend-summary/
     """
 
-    return process_query(request)
+    try:
+        # input guardrail before LangGraph execution
+        guard_input(request["question"])
+
+        response = process_query(request)
+
+    except GuardrailViolation as violation:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "guardrail": violation.guard,
+                "message": violation.message,
+            },
+        )
+
+    return response
 
 
 @router.post("/stream")
