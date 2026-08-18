@@ -1,5 +1,5 @@
 from src.agents.graph import credit_card_graph
-
+from src.core.guardrails import guard_output
 
 def process_query(request: dict):
     """
@@ -24,18 +24,13 @@ def process_query(request: dict):
             }
         )
 
-        print("========== GRAPH RESPONSE ==========")
-        print(response)
+        answer = response.get("answer", "",)
 
-        print("========== FINAL ANSWER ==========")
-        print(response.get("answer"))
+        answer = guard_output(answer)
 
         result = {
             "question": question,
-            "response": response.get(
-                "answer",
-                "",
-            ),
+            "response": answer,
         }
 
         if response.get("citations"):
@@ -43,11 +38,9 @@ def process_query(request: dict):
 
         return result
 
-    except Exception:
-        return {
-            "question": question,
-            "response": "I am unable to process your request at the moment. Please try again later.",
-        }
+    except Exception as e:
+        print("ERROR in processing query:", str(e))
+        raise e
 
 
 async def process_query_stream(request: dict):
@@ -57,8 +50,6 @@ async def process_query_stream(request: dict):
     Used by:
     POST /api/v1/spend-summary/stream
     """
-
-    print("=== STREAM START ===")
 
     question = request["question"]
 
@@ -77,8 +68,6 @@ async def process_query_stream(request: dict):
 
         event_name = event["event"]
 
-        print("EVENT:", event_name)
-
         if event_name == "on_chat_model_stream":
 
             chunk = event["data"]["chunk"]
@@ -90,10 +79,4 @@ async def process_query_stream(request: dict):
             )
 
             if content:
-
-                print(
-                    "STREAM CHUNK:",
-                    content,
-                )
-
                 yield f"data: {content}\n\n"
