@@ -150,6 +150,13 @@ def parse_document(file_path: str) -> list[dict]:
 
         page_number = prov[0].page_no if prov else None
 
+        print(
+            "DEBUG:",
+            label,
+            "page_number=",
+            page_number,
+        )
+
         position = None
 
         if prov and hasattr(prov[0], "bbox") and prov[0].bbox is not None:
@@ -249,6 +256,15 @@ def parse_document(file_path: str) -> list[dict]:
                 table_text = getattr(node, "text", "")
 
             if table_text.strip():
+
+                print(
+                    "DEBUG TEXT:",
+                    text[:50],
+                    "| section=",
+                    current_section,
+                    "| page=",
+                    page_number,
+                )
                 parsed_chunks.append(
                     {
                         "content": table_text.strip(),

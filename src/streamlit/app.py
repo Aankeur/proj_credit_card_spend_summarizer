@@ -1,10 +1,10 @@
 import requests
 import streamlit as st
 
-
 # CONFIG
 
 API_BASE_URL = "http://localhost:8000"
+QUERY_ENDPOINT = f"{API_BASE_URL}/api/v1/spend-summary/"
 
 
 # PAGE CONFIG
@@ -154,130 +154,133 @@ st.markdown(
 
 # CARD CONTEXT
 
-col1, col2 = st.columns([1, 1])
+# col1, col2 = st.columns([1, 1])
 
-with col1:
-    card_id = st.selectbox(
-        "💳 Card",
-        [
-            "CC-881001 — NorthStar Gold",
-            "CC-882001 — NorthStar Platinum",
-            "CC-883001 — NorthStar Classic",
-        ],
-    )
+# with col1:
+#     card_id = st.selectbox(
+#         "💳 Card",
+#         [
+#             "CC-881001 — NorthStar Gold",
+#             "CC-882001 — NorthStar Platinum",
+#             "CC-883001 — NorthStar Classic",
+#         ],
+#     )
 
-with col2:
-    billing_month = st.selectbox(
-        "📅 Billing Month",
-        [
-            "March 2026",
-            "February 2026",
-            "January 2026",
-        ],
-    )
+# with col2:
+#     billing_month = st.selectbox(
+#         "📅 Billing Month",
+#         [
+#             "March 2026",
+#             "February 2026",
+#             "January 2026",
+#         ],
+#     )
 
+
+card_id = ""
+billing_month = ""
 
 # SUGGESTED QUESTIONS
 
-if st.session_state.show_suggestions:
+# if st.session_state.show_suggestions:
 
-    st.markdown(
-        '<div class="suggestion-title">📈 Suggested questions</div>',
-        unsafe_allow_html=True,
-    )
+#     st.markdown(
+#         '<div class="suggestion-title">📈 Suggested questions</div>',
+#         unsafe_allow_html=True,
+#     )
 
-    col1, col2, col3, col4 = st.columns(4)
+# col1, col2, col3, col4 = st.columns(4)
 
-    with col1:
-        if st.button(
-            "📊 Monthly Spend",
-            use_container_width=True,
-        ):
-            st.session_state.selected_question = (
-                f"Summarise my spending for {billing_month} "
-                f"on card {card_id.split(' — ')[0]}"
-            )
-            st.session_state.show_suggestions = False
-            st.rerun()
+# with col1:
+#     if st.button(
+#         "📊 Monthly Spend",
+#         use_container_width=True,
+#     ):
+#         st.session_state.selected_question = (
+#             f"Summarise my spending for {billing_month} "
+#             f"on card {card_id.split(' — ')[0]}"
+#         )
+#         st.session_state.show_suggestions = False
+#         st.rerun()
 
-    with col2:
-        if st.button(
-            "🏆 Top Category",
-            use_container_width=True,
-        ):
-            st.session_state.selected_question = (
-                "What did I spend the most on this month?"
-            )
-            st.session_state.show_suggestions = False
-            st.rerun()
+# with col2:
+#     if st.button(
+#         "🏆 Top Category",
+#         use_container_width=True,
+#     ):
+#         st.session_state.selected_question = (
+#             "What did I spend the most on this month?"
+#         )
+#         st.session_state.show_suggestions = False
+#         st.rerun()
 
-    with col3:
-        if st.button(
-            "🌍 International Spend",
-            use_container_width=True,
-        ):
-            st.session_state.selected_question = (
-                "How much did I spend internationally this billing cycle?"
-            )
-            st.session_state.show_suggestions = False
-            st.rerun()
+# with col3:
+#     if st.button(
+#         "🌍 International Spend",
+#         use_container_width=True,
+#     ):
+#         st.session_state.selected_question = (
+#             "How much did I spend internationally this billing cycle?"
+#         )
+#         st.session_state.show_suggestions = False
+#         st.rerun()
 
-    with col4:
-        if st.button(
-            "🎁 Reward Points",
-            use_container_width=True,
-        ):
-            st.session_state.selected_question = (
-                "How many reward points did I earn this month?"
-            )
-            st.session_state.show_suggestions = False
-            st.rerun()
+# with col4:
+#     if st.button(
+#         "🎁 Reward Points",
+#         use_container_width=True,
+#     ):
+#         st.session_state.selected_question = (
+#             "How many reward points did I earn this month?"
+#         )
+#         st.session_state.show_suggestions = False
+#         st.rerun()
 
-    col1, col2, col3, col4 = st.columns(4)
+# col1, col2, col3, col4 = st.columns(4)
 
-    with col1:
-        if st.button(
-            "📈 Compare Last Month",
-            use_container_width=True,
-        ):
-            st.session_state.selected_question = (
-                "Compare my spending this month with last month."
-            )
-            st.session_state.show_suggestions = False
-            st.rerun()
+# with col1:
+#     if st.button(
+#         "📈 Compare Last Month",
+#         use_container_width=True,
+#     ):
+#         st.session_state.selected_question = (
+#             "Compare my spending this month with last month."
+#         )
+#         st.session_state.show_suggestions = False
+#         st.rerun()
 
-    with col2:
-        if st.button(
-            "💳 Fee Waiver",
-            use_container_width=True,
-        ):
-            st.session_state.selected_question = (
-                "Am I on track to meet my annual fee waiver threshold?"
-            )
-            st.session_state.show_suggestions = False
-            st.rerun()
+# with col2:
+#     if st.button(
+#         "💳 Fee Waiver",
+#         use_container_width=True,
+#     ):
+#         st.session_state.selected_question = (
+#             "Am I on track to meet my annual fee waiver threshold?"
+#         )
+#         st.session_state.show_suggestions = False
+#         st.rerun()
 
-    with col3:
-        if st.button(
-            "🛍️ Top Merchants",
-            use_container_width=True,
-        ):
-            st.session_state.selected_question = (
-                "Show me my top spending merchants this month."
-            )
-            st.session_state.show_suggestions = False
-            st.rerun()
+# with col3:
+#     if st.button(
+#         "🛍️ Top Merchants",
+#         use_container_width=True,
+#     ):
+#         st.session_state.selected_question = (
+#             "Show me my top spending merchants this month."
+#         )
+#         st.session_state.show_suggestions = False
+#         st.rerun()
 
-    with col4:
-        if st.button(
-            "💰 Largest Purchase",
-            use_container_width=True,
-        ):
-            st.session_state.selected_question = (
-                "What was my largest purchase this month?"
-            )
-            st.session_state.show_suggestions = False
-            st.rerun()
+# with col4:
+#     if st.button(
+#         "💰 Largest Purchase",
+#         use_container_width=True,
+#     ):
+#         st.session_state.selected_question = (
+#             "What was my largest purchase this month?"
+#         )
+#         st.session_state.show_suggestions = False
+#         st.rerun()
 
 
 # CHAT HISTORY
@@ -295,9 +298,7 @@ default_question = st.session_state.pop(
     None,
 )
 
-prompt = st.chat_input(
-    "What would you like to know about your spending?"
-)
+prompt = st.chat_input("What would you like to know about your spending?")
 
 
 # If a suggestion was selected
@@ -307,16 +308,13 @@ if default_question:
 
 # PROCESS QUESTION
 
+# PROCESS QUESTION
+
 if prompt:
 
     card_number = card_id.split(" — ")[0]
 
-    user_message = (
-        f"{prompt}\n\n"
-        f"Card: {card_number}\n"
-        f"Billing Month: {billing_month}"
-    )
-
+    # Save user message
     st.session_state.messages.append(
         {
             "role": "user",
@@ -324,43 +322,41 @@ if prompt:
         }
     )
 
+    # Immediately show user message
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # --------------------------------------------------------
-    # TEMPORARY RESPONSE
-    # --------------------------------------------------------
-    #
-    # Retrieval/summarisation API is not integrated yet.
-    # Keep this temporary until teammate's endpoint is ready.
-    #
+    try:
 
-    with st.chat_message("assistant"):
+        payload = {
+            "question": prompt,
+        }
 
-        st.markdown(
-            """
-            ### 🔎 Processing your request
+        response = requests.post(QUERY_ENDPOINT, json=payload, timeout=120)
 
-            Your request has been received.
+        if response.status_code == 200:
 
-            The final response will combine:
+            api_response = response.json()
 
-            - Customer transaction data
-            - Knowledge Base retrieval
-            - Hybrid vector + FTS search
-            - Reranking
-            - LLM-generated spend summary
-            """
-        )
+            response_text = api_response.get("response", "No response received.")
 
-        st.info(
-            "Retrieval and summarisation API will be connected here."
-        )
+        else:
 
-        response_text = (
-            "Retrieval and summarisation are not connected yet."
-        )
+            response_text = f"API Error: {response.status_code}"
 
+    except requests.exceptions.ConnectionError:
+
+        response_text = "Unable to connect to FastAPI backend."
+
+    except requests.exceptions.Timeout:
+
+        response_text = "Request timed out. Please try again."
+
+    except Exception as exc:
+
+        response_text = f"Error: {exc}"
+
+    # Save assistant message
     st.session_state.messages.append(
         {
             "role": "assistant",
@@ -368,63 +364,113 @@ if prompt:
         }
     )
 
+    # Show assistant response
+    with st.chat_message("assistant"):
+        st.markdown(response_text)
+
     st.session_state.show_suggestions = True
+
+    st.rerun()
+    # st.session_state.messages.append(
+    #     {
+    #         "role": "assistant",
+    #         "content": response_text,
+    #     }
+    # )
+
+    # st.session_state.show_suggestions = True
 
 
 # ADMIN / DEVELOPMENT SECTION
 
-with st.expander("⚙️ Developer / Admin"):
+# with st.expander("⚙️ Developer / Admin"):
+# ADMIN / DEVELOPMENT SECTION
 
-    st.caption(
-        "Knowledge Base ingestion is an administrative operation "
-        "and is kept separate from the customer chat experience."
+with st.sidebar:
+
+    st.header("⚙️ Developer / Admin")
+
+    uploaded_file = st.file_uploader(
+        "Upload Knowledge Base Document",
+        type=["pdf", "txt", "docx"],
     )
 
-    if st.button(
-        "Run Knowledge Base Ingestion",
-        type="secondary",
-    ):
+    if st.button("Upload Document"):
 
-        try:
+        if uploaded_file is None:
+            st.warning("Please select a document first.")
 
-            response = requests.post(
-                f"{API_BASE_URL}/api/v1/ingest",
-                timeout=300,
-            )
+        else:
 
-            if response.status_code == 200:
+            try:
 
-                st.success(
-                    "Knowledge Base ingestion completed."
+                response = requests.post(
+                    f"{API_BASE_URL}/api/v1/documents/",
+                    files={"file": uploaded_file},
+                    timeout=300,
                 )
 
-                st.json(response.json())
+                if response.status_code == 200:
 
-            else:
+                    st.success("Document uploaded successfully.")
 
-                st.error(
-                    f"Ingestion failed: "
-                    f"{response.status_code}"
-                )
+                else:
 
-                st.text(response.text)
+                    st.error(f"Upload failed: {response.status_code}")
 
-        except requests.exceptions.ConnectionError:
+                    st.text(response.text)
 
-            st.error(
-                "Could not connect to FastAPI. "
-                "Start the backend with:\n\n"
-                "uv run uvicorn src.main:app --reload"
-            )
+            except requests.exceptions.ConnectionError:
 
-        except requests.exceptions.Timeout:
+                st.error("Could not connect to FastAPI backend.")
 
-            st.error(
-                "Ingestion timed out."
-            )
+            except requests.exceptions.Timeout:
 
-        except Exception as exc:
+                st.error("Upload timed out.")
 
-            st.error(
-                f"Unexpected error: {exc}"
-            )
+            except Exception as exc:
+
+                st.error(f"Unexpected error: {exc}")  # st.caption(
+    #     "Knowledge Base ingestion is an administrative operation "
+    #     "and is kept separate from the customer chat experience."
+    # )
+
+    # if st.button(
+    #     "Run Knowledge Base Ingestion",
+    #     type="secondary",
+    # ):
+
+    #     try:
+
+    #         response = requests.post(
+    #             f"{API_BASE_URL}/api/v1/ingest",
+    #             timeout=300,
+    #         )
+
+    #         if response.status_code == 200:
+
+    #             st.success("Knowledge Base ingestion completed.")
+
+    #             st.json(response.json())
+
+    #         else:
+
+    #             st.error(f"Ingestion failed: " f"{response.status_code}")
+
+    #             st.text(response.text)
+
+    #     except requests.exceptions.ConnectionError:
+
+    #         st.error(
+    #             "Could not connect to FastAPI. "
+    #             "Start the backend with:\n\n"
+    #             "uv run uvicorn src.main:app --reload"
+    #         )
+
+    #     except requests.exceptions.Timeout:
+
+    #         st.error("Ingestion timed out.")
+
+    #     except Exception as exc:
+
+    #         st.error(f"Unexpected error: {exc}")
