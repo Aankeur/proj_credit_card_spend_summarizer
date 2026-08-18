@@ -19,10 +19,3 @@ app.include_router(query_router)
 
 ##uv add fastapi uvicorn streamlit python-multipart python-dotenv pydantic pydantic-settings langchain langchain-core langchain-community langchain-openai langchain-postgres langgraph openai psycopg[binary] pgvector sqlalchemy cohere docling pypdf tiktoken
 # uv add uv add presidio-analyzer presidio-anonymizer
-
-
-# guardrails configure
-
-# guardrails hub install hub://guardrails/guardrails_pii
-
-# guardrails hub install hub://guardrails/toxic_language
