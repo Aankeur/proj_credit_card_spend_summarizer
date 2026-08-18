@@ -383,49 +383,94 @@ if prompt:
 
 # ADMIN / DEVELOPMENT SECTION
 
-with st.expander("⚙️ Developer / Admin"):
+# with st.expander("⚙️ Developer / Admin"):
+# ADMIN / DEVELOPMENT SECTION
 
-    st.caption(
-        "Knowledge Base ingestion is an administrative operation "
-        "and is kept separate from the customer chat experience."
+with st.sidebar:
+
+    st.header("⚙️ Developer / Admin")
+
+    uploaded_file = st.file_uploader(
+        "Upload Knowledge Base Document",
+        type=["pdf", "txt", "docx"],
     )
 
-    if st.button(
-        "Run Knowledge Base Ingestion",
-        type="secondary",
-    ):
+    if st.button("Upload Document"):
 
-        try:
+        if uploaded_file is None:
+            st.warning("Please select a document first.")
 
-            response = requests.post(
-                f"{API_BASE_URL}/api/v1/ingest",
-                timeout=300,
-            )
+        else:
 
-            if response.status_code == 200:
+            try:
 
-                st.success("Knowledge Base ingestion completed.")
+                response = requests.post(
+                    f"{API_BASE_URL}/api/v1/documents/",
+                    files={"file": uploaded_file},
+                    timeout=300,
+                )
 
-                st.json(response.json())
+                if response.status_code == 200:
 
-            else:
+                    st.success("Document uploaded successfully.")
 
-                st.error(f"Ingestion failed: " f"{response.status_code}")
+                else:
 
-                st.text(response.text)
+                    st.error(f"Upload failed: {response.status_code}")
 
-        except requests.exceptions.ConnectionError:
+                    st.text(response.text)
 
-            st.error(
-                "Could not connect to FastAPI. "
-                "Start the backend with:\n\n"
-                "uv run uvicorn src.main:app --reload"
-            )
+            except requests.exceptions.ConnectionError:
 
-        except requests.exceptions.Timeout:
+                st.error("Could not connect to FastAPI backend.")
 
-            st.error("Ingestion timed out.")
+            except requests.exceptions.Timeout:
 
-        except Exception as exc:
+                st.error("Upload timed out.")
 
-            st.error(f"Unexpected error: {exc}")
+            except Exception as exc:
+
+                st.error(f"Unexpected error: {exc}")  # st.caption(
+    #     "Knowledge Base ingestion is an administrative operation "
+    #     "and is kept separate from the customer chat experience."
+    # )
+
+    # if st.button(
+    #     "Run Knowledge Base Ingestion",
+    #     type="secondary",
+    # ):
+
+    #     try:
+
+    #         response = requests.post(
+    #             f"{API_BASE_URL}/api/v1/ingest",
+    #             timeout=300,
+    #         )
+
+    #         if response.status_code == 200:
+
+    #             st.success("Knowledge Base ingestion completed.")
+
+    #             st.json(response.json())
+
+    #         else:
+
+    #             st.error(f"Ingestion failed: " f"{response.status_code}")
+
+    #             st.text(response.text)
+
+    #     except requests.exceptions.ConnectionError:
+
+    #         st.error(
+    #             "Could not connect to FastAPI. "
+    #             "Start the backend with:\n\n"
+    #             "uv run uvicorn src.main:app --reload"
+    #         )
+
+    #     except requests.exceptions.Timeout:
+
+    #         st.error("Ingestion timed out.")
+
+    #     except Exception as exc:
+
+    #         st.error(f"Unexpected error: {exc}")
