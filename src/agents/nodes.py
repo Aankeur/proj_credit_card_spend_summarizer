@@ -3,6 +3,7 @@ from src.tools.nl2sql import generate_sql
 
 from src.agents.rag_agent import (
     llm,
+    structured_llm,
     create_answer_prompt,
 )
 
@@ -10,6 +11,18 @@ from src.tools.tools import (
     search_hybrid,
     search_rdbms,
 )
+
+
+def greeting_node(
+    state: CreditCardAgentState,
+):
+    """
+    Handles greetings without retrieval.
+    """
+
+    return {
+        "answer": "Hi! How can I help you today?",
+    }
 
 
 def router_node(
@@ -51,6 +64,16 @@ Classify the user question into exactly one category:
   - fee waiver policy
   - reward program explanation
 
+  - hybrid:
+  Use when the question requires BOTH:
+  1. General card information from knowledge base
+  2. Customer/card specific information from PostgreSQL
+
+  Examples:
+  - What are the benefits of my NorthStar Gold card and my available limit for CC-881001?
+  - Explain Gold card features and tell me my outstanding balance.
+  - What reward benefits are available and how many reward points do I have?
+
 User question:
 {question}
 
@@ -58,13 +81,15 @@ Return only one word:
 rdbms
 or
 knowledge_base
+or
+hybrid
 """
 
     response = llm.invoke(router_prompt)
 
     route = response.content.strip().lower()
 
-    if route not in ["rdbms", "knowledge_base"]:
+    if route not in ["rdbms", "knowledge_base", "hybrid"]:
         route = "knowledge_base"
 
     print("========== ROUTER DECISION ==========")
@@ -97,8 +122,10 @@ def rdbms_node(
     print("========== RDBMS NODE HIT ==========")
     print(state["question"])
 
-    sql_query = generate_sql(state["question"])
-
+    sql_query = generate_sql(
+        state["question"],
+        state.get("chat_history", []),
+    )
     print("========== GENERATED SQL ==========")
     print(sql_query)
 
@@ -108,6 +135,23 @@ def rdbms_node(
     print(result)
 
     return {"sql_result": result}
+
+
+def hybrid_node(state):
+    print("========== HYBRID NODE HIT ==========")
+
+    question = state["question"]
+
+    # Call knowledge retrieval
+    knowledge_result = knowledge_node(state)
+
+    # Call rdbms retrieval
+    rdbms_result = rdbms_node(state)
+
+    return {
+        **knowledge_result,
+        **rdbms_result,
+    }
 
 
 # def generate_answer_node(
@@ -207,10 +251,10 @@ def generate_answer_node(
     print("========== FINAL PROMPT ==========")
     print(prompt)
 
-    response = llm.invoke(prompt)
+    response = structured_llm.invoke(prompt)
 
     print("========== ANSWER MODEL RESPONSE ==========")
-    print(response.content)
+    print(response.response)
 
     citations = []
 
@@ -227,6 +271,6 @@ def generate_answer_node(
             )
 
     return {
-        "answer": response.content,
+        "answer": response.response,
         "citations": citations,
     }

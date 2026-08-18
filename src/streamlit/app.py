@@ -328,9 +328,7 @@ if prompt:
 
     try:
 
-        payload = {
-            "question": prompt,
-        }
+        payload = {"question": prompt, "chat_history": st.session_state.messages}
 
         response = requests.post(QUERY_ENDPOINT, json=payload, timeout=120)
 
@@ -338,6 +336,8 @@ if prompt:
 
             api_response = response.json()
 
+            print("========== STREAMLIT API RESPONSE ==========")
+            print(api_response)
             response_text = api_response.get("response", "No response received.")
 
         else:
@@ -407,7 +407,7 @@ with st.sidebar:
                 response = requests.post(
                     f"{API_BASE_URL}/api/v1/documents/",
                     files={"file": uploaded_file},
-                    timeout=300,
+                    timeout=1800,
                 )
 
                 if response.status_code == 200:

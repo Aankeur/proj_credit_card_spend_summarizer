@@ -11,15 +11,10 @@ load_dotenv()
 # ---------------------------------------------------------
 
 llm = ChatOpenAI(
-    model="gpt-4o-mini",
+    model="gpt-5.5",
     temperature=0,
     streaming=True,
 )
-
-
-# ---------------------------------------------------------
-# Final Response Schema
-# ---------------------------------------------------------
 
 
 class AgentResponse(BaseModel):
@@ -32,6 +27,9 @@ class AgentResponse(BaseModel):
     citations: List[str] = Field(
         default_factory=list, description="Knowledge base citations if available"
     )
+
+
+structured_llm = llm.with_structured_output(AgentResponse)
 
 
 SYSTEM_PROMPT = (
@@ -57,10 +55,10 @@ SYSTEM_PROMPT = (
 - Do not mention tools, agents, SQL, databases, or retrieval steps.
 
 - For questions asking both customer-specific/card-specific data and general card information:
-  - Route to rdbms.
-  - Retrieve customer/card data first.
-  - Answer only using the available retrieved information.
-
+  - Use both knowledge-base information and customer/card retrieved information.
+  - Combine both sources to answer the user's question.
+  - Use knowledge-base information for benefits, features, policies, and card descriptions.
+  - Use PostgreSQL information for limits, balances, rewards, transactions, and customer-specific details.
 
 5. Data source rules:
 - Customer-specific data questions must use search_rdbms.

@@ -6,7 +6,6 @@ from src.api.v1.services.query_service import (
     process_query_stream,
 )
 
-
 router = APIRouter(
     prefix="/api/v1/spend-summary",
     tags=["Spend Summary"],
@@ -23,7 +22,6 @@ def query(request: dict):
     """
 
     return process_query(request)
-
 
 
 @router.post("/stream")
