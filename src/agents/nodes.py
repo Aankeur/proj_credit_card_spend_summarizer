@@ -10,7 +10,20 @@ from src.agents.rag_agent import (
 from src.tools.tools import (
     search_hybrid,
     search_rdbms,
+    search_fts,
+    search_vector,
 )
+
+# def greeting_node(
+#     state: CreditCardAgentState,
+# ):
+#     """
+#     Handles greetings without retrieval.
+#     """
+
+#     return {
+#         "answer": "Hi! How can I help you today?",
+#     }
 
 
 def greeting_node(
@@ -20,8 +33,17 @@ def greeting_node(
     Handles greetings without retrieval.
     """
 
+    response = llm.invoke(f"""
+Respond to this greeting naturally.
+If the user introduces themselves, acknowledge their name.
+Do not use retrieval.
+
+User message:
+{state["question"]}
+""")
+
     return {
-        "answer": "Hi! How can I help you today?",
+        "answer": response.content,
     }
 
 
@@ -246,6 +268,7 @@ def generate_answer_node(
     prompt = create_answer_prompt(
         question=state["question"],
         context=context,
+        chat_history=state.get("chat_history", []),
     )
 
     print("========== FINAL PROMPT ==========")
